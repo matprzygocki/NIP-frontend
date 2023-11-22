@@ -9,11 +9,12 @@ const FrameWithButtons = () => {
     const [selectedFile, setSelectedFile] = useState(null);
     const [chartConfig, setChartConfig] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [url, setUrl] = useState("http://localhost:8000/predict"); 
 
     const getPredictions = () => {
         console.log("Collecting data...")
         setLoading(true)
-        fetch("http://localhost:8000/predict")
+        fetch(url)
             .then(response => {
                 console.log(response);
                 return response.json();
@@ -133,10 +134,12 @@ const FrameWithButtons = () => {
                                         dla Bitcona</Button>
                                     <Button onClick={() => handlePredefinedFile('Naucz sieć dla Ethernum')}>Naucz sieć
                                         dla Ethernum</Button>
-                                    <Button onClick={() => handlePredefinedFile('Naucz sieć dla Krypto 3')}>Naucz sieć
+                                    <Button onClick={() => {setUrl("http://localhost:8000/predict");}}>Naucz sieć
                                         dla Krypto 3</Button>
-                                    <Button onClick={() => handlePredefinedFile('Naucz sieć dla Krypto 4')}>Naucz sieć
-                                        dla Krypto 4</Button>
+                                    <Button onClick={() => {setUrl("http://localhost:8000/predict2");}}>Naucz sieć
+                                        dla Krypto 4
+                                    </Button>
+
                                 </ButtonGroup>
                             </Box>
                         </Card>
