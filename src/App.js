@@ -9,12 +9,20 @@ const FrameWithButtons = () => {
         const [selectedFile, setSelectedFile] = useState(null);
         const [chartConfig, setChartConfig] = useState(null);
         const [loading, setLoading] = useState(false);
-    const [url, setUrl] = useState("http://localhost:8000/predict");
+        const [url, setUrl] = useState("http://localhost:8000/predict");
 
         const getPredictions = () => {
             console.log("Collecting data...")
             setLoading(true)
-            fetch(url)
+            console.log(selectedFile.size)
+            fetch(url, {
+                method: 'POST',
+                body: selectedFile,
+                headers: selectedFile ? {
+                    'content-type': 'multipart/form-data',
+                    'content-length': `${selectedFile.size}`,
+                } : null,
+            })
                 .then(response => {
                     console.log(response);
                     return response.json();
@@ -77,20 +85,16 @@ const FrameWithButtons = () => {
 
         const handleFileChange = (event) => {
             const file = event.target.files[0];
+            console.log(file)
             setSelectedFile(file);
-        };
-
-        const handleUpload = () => {
-            if (selectedFile) {
-                console.log('Wybrany plik:', selectedFile);
-            } else {
-                console.log('Nie wybrano pliku.');
+            if (file !== undefined && file !== null) {
+                setUrl("http://localhost:8000/predict")
             }
         };
 
-        const handlePredefinedFile = (fileName) => {
-            // Obsługa wyboru gotowych plików
-            console.log(`Wybrany gotowy plik: ${fileName}`);
+        const handlePredefinedFile = urlWithPredefinedFile => {
+            setUrl(urlWithPredefinedFile);
+            setSelectedFile(null);
         };
 
         const customize = {
@@ -115,10 +119,13 @@ const FrameWithButtons = () => {
                                     <Typography variant="h5" gutterBottom>
                                         Indywidualny plik CSV
                                     </Typography>
-                                    <Button variant="contained" component="label" onClick={handleUpload}>
-                                        Wczytaj CSV
-                                        <input type="file" hidden onChange={handleFileChange}/>
-                                    </Button>
+                                    <Box sx={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
+                                        <Button variant="contained" component="label">
+                                            Wczytaj CSV
+                                            <input type="file" hidden onChange={handleFileChange}/>
+                                        </Button>
+                                        {selectedFile && <Typography ml={2}>Nazwa wybranego pliku: {selectedFile.name}</Typography>}
+                                    </Box>
                                 </Box>
                             </Card>
                         </Grid>
@@ -129,15 +136,20 @@ const FrameWithButtons = () => {
                                         Predefiniowane pliki CSV
                                     </Typography>
                                     <ButtonGroup variant="contained" aria-label="outlined primary button group">
-                                        <Button onClick={() => handlePredefinedFile('Naucz sieć dla Bitcona')}>Naucz sieć
-                                            dla Bitcona</Button>
-                                        <Button onClick={() => handlePredefinedFile('Naucz sieć dla Ethernum')}>Naucz sieć
-                                            dla Ethernum</Button>
-                                        <Button onClick={() => {setUrl("http://localhost:8000/predict")}>Naucz sieć
-                                            dla Krypto 3</Button>
-                                        <Button onClick={() => {setUrl("http://localhost:8000/predict2")}>Naucz sieć
-                                            dla Krypto 4</Button>
+                                        <Button onClick={() => handlePredefinedFile('Naucz sieć dla Bitcona')}>Naucz sieć dla Bitcona</Button>
+                                        <Button onClick={() => handlePredefinedFile('Naucz sieć dla Ethernum')}>Naucz sieć dla Ethernum</Button>
+                                        <Button onClick={() => handlePredefinedFile("http://localhost:8000/predict/airline-passengers.csv")}>Naucz sieć dla Krypto 3</Button>
+                                        <Button onClick={() => handlePredefinedFile("http://localhost:8000/predict/zbior-drugi.csv")}>Naucz sieć dla Krypto 4</Button>
                                     </ButtonGroup>
+                                </Box>
+                            </Card>
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Card>
+                                <Box p={2}>
+                                    <Typography variant="h5" gutterBottom>
+                                        {"Aktualny wybór: " + url }
+                                    </Typography>
                                 </Box>
                             </Card>
                         </Grid>
