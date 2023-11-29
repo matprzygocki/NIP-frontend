@@ -193,7 +193,7 @@ const FrameWithButtons = () => {
                                         Indywidualny plik CSV
                                     </Typography>
                                     <Box sx={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
-                                        <Button variant="contained" component="label">
+                                        <Button onClick={() => handlePredefinedFile("http://localhost:8000/predict/"+selectedFile)} variant="contained" component="label">
                                             Wczytaj CSV
                                             <input type="file" hidden onChange={handleFileChange}/>
                                         </Button>
@@ -221,7 +221,7 @@ const FrameWithButtons = () => {
                             <Card>
                                 <Box p={2}>
                                     <Typography variant="h5" gutterBottom>
-                                        {"Aktualny wybór: " + url }
+                                        {"Aktualny wybór: " + url + (selectedFile ? "/" + selectedFile.name : "")}
                                     </Typography>
                                 </Box>
                             </Card>
