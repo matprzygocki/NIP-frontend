@@ -12,153 +12,77 @@ const FrameWithButtons = () => {
         const [url, setUrl] = useState("http://localhost:8000/predict");
 
         const getPredictions = () => {
-            const formData = new FormData();
-    
-            formData.append('file', selectedFile);
-    
+            setLoading(true);
+            let formData = null;
+
+            if (selectedFile !== undefined && selectedFile !== null) {
+                formData = new FormData();
+                formData.append('file', selectedFile);
+            }
+
             fetch(
-               url,
+                url,
                 {
                     method: 'POST',
                     body: formData,
                 }
             )
-                    .then(response => {
-                        console.log(response);
-                        return response.json();
-                    })
-                    .then(data => {
-                            console.log(data);
-                            const config = {};
-                            const chartData = new Map();
-                            for (let i = 0; i < data.train.x.length; i++) {
-                                const num = data.train.x[i];
+                .then(response => {
+                    return response.json();
+                })
+                .then(data => {
+                        const config = {};
+                        const chartData = new Map();
+                        for (let i = 0; i < data.train.x.length; i++) {
+                            const num = data.train.x[i];
+                            chartData.set(num, {
+                                x: num,
+                                train: data.train.y[i],
+                                test: null
+                            });
+                        }
+                        for (let i = 0; i < data.test.x.length; i++) {
+                            const num = data.test.x[i];
+                            if (chartData.has(num)) {
+                                const existingData = chartData.get(num);
+                                existingData.test = data.test.y[i];
+                                chartData.set(num, existingData);
+                            } else {
                                 chartData.set(num, {
                                     x: num,
-                                    train: data.train.y[i],
-                                    test: null
+                                    train: null,
+                                    test: data.test.y[i]
                                 });
                             }
-                            for (let i = 0; i < data.test.x.length; i++) {
-                                const num = data.test.x[i];
-                                if (chartData.has(num)) {
-                                    const existingData = chartData.get(num);
-                                    existingData.test = data.test.y[i];
-                                    chartData.set(num, existingData);
-                                } else {
-                                    chartData.set(num, {
-                                        x: num,
-                                        train: null,
-                                        test: data.test.y[i]
-                                    });
-                                }
-                            }
-                            console.log(chartData);
-                            const chartDataArray = Array.from(chartData, ([key, value]) => value);
-                            console.log(chartDataArray);
-                            config.data = chartDataArray;
-                            config.series = ["train", "test"].map(key => {
-                                return {
-                                    type: "line",
-                                    dataKey: key,
-                                    label: key,
-                                    color: colorByKey[key],
-                                    showMark: false
-                                }
-                            });
-                            config.xAxis = [{
-                                scaleType: "point",
-                                dataKey: 'x',
-                                valueFormatter: (v) => v.toString(),
-                                min: 0,
-                                max: 1,
-                            }];
-                            setChartConfig(config);
-                            setLoading(false);
                         }
-                    )
-                    .catch((error) => {
-                        console.log(error);
+                        config.data = Array.from(chartData, ([key, value]) => value);
+                        config.series = ["train", "test"].map(key => {
+                            return {
+                                type: "line",
+                                dataKey: key,
+                                label: key,
+                                color: colorByKey[key],
+                                showMark: false
+                            }
+                        });
+                        config.xAxis = [{
+                            scaleType: "point",
+                            dataKey: 'x',
+                            min: 0,
+                            max: 1,
+                        }];
+                        setChartConfig(config);
                         setLoading(false);
-                    });
-            }
-        
-        
-        // const getPredictions = () => {
-        //     console.log("Collecting data...")
-        //     setLoading(true)
-        //     console.log(selectedFile.size)
-        //     fetch(url, {
-        //         method: 'POST',
-        //         body: selectedFile,
-        //         headers: selectedFile ? {
-        //             'content-type': 'multipart/form-data',
-        //             'content-length': `${selectedFile.size}`,
-        //         } : null,
-        //     })
-        //         .then(response => {
-        //             console.log(response);
-        //             return response.json();
-        //         })
-        //         .then(data => {
-        //                 console.log(data);
-        //                 const config = {};
-        //                 const chartData = new Map();
-        //                 for (let i = 0; i < data.train.x.length; i++) {
-        //                     const num = data.train.x[i];
-        //                     chartData.set(num, {
-        //                         x: num,
-        //                         train: data.train.y[i],
-        //                         test: null
-        //                     });
-        //                 }
-        //                 for (let i = 0; i < data.test.x.length; i++) {
-        //                     const num = data.test.x[i];
-        //                     if (chartData.has(num)) {
-        //                         const existingData = chartData.get(num);
-        //                         existingData.test = data.test.y[i];
-        //                         chartData.set(num, existingData);
-        //                     } else {
-        //                         chartData.set(num, {
-        //                             x: num,
-        //                             train: null,
-        //                             test: data.test.y[i]
-        //                         });
-        //                     }
-        //                 }
-        //                 console.log(chartData);
-        //                 const chartDataArray = Array.from(chartData, ([key, value]) => value);
-        //                 console.log(chartDataArray);
-        //                 config.data = chartDataArray;
-        //                 config.series = ["train", "test"].map(key => {
-        //                     return {
-        //                         type: "line",
-        //                         dataKey: key,
-        //                         label: key,
-        //                         color: colorByKey[key],
-        //                         showMark: false
-        //                     }
-        //                 });
-        //                 config.xAxis = [{
-        //                     scaleType: "point",
-        //                     dataKey: 'x',
-        //                     valueFormatter: (v) => v.toString(),
-        //                     min: 0,
-        //                     max: 1,
-        //                 }];
-        //                 setChartConfig(config);
-        //                 setLoading(false);
-        //             }
-        //         )
-        //         .catch((error) => {
-        //             console.log(error);
-        //             setLoading(false);
-        //         });
-        // }
+                    }
+                )
+                .catch((error) => {
+                    console.log(error);
+                    setLoading(false);
+                });
+        }
 
         const handleFileChange = (event) => {
             const file = event.target.files[0];
-            console.log(file)
             setSelectedFile(file);
             if (file !== undefined && file !== null) {
                 setUrl("http://localhost:8000/predict")
@@ -193,11 +117,12 @@ const FrameWithButtons = () => {
                                         Indywidualny plik CSV
                                     </Typography>
                                     <Box sx={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
-                                        <Button onClick={() => handlePredefinedFile("http://localhost:8000/predict/"+selectedFile)} variant="contained" component="label">
+                                        <Button variant="contained" component="label">
                                             Wczytaj CSV
                                             <input type="file" hidden onChange={handleFileChange}/>
                                         </Button>
-                                        {selectedFile && <Typography ml={2}>Nazwa wybranego pliku: {selectedFile.name}</Typography>}
+                                        {selectedFile &&
+                                            <Typography ml={2}>Nazwa wybranego pliku: {selectedFile.name}</Typography>}
                                     </Box>
                                 </Box>
                             </Card>
@@ -209,10 +134,16 @@ const FrameWithButtons = () => {
                                         Predefiniowane pliki CSV
                                     </Typography>
                                     <ButtonGroup variant="contained" aria-label="outlined primary button group">
-                                        <Button onClick={() => handlePredefinedFile('Naucz sieć dla Bitcona')}>Naucz sieć dla Bitcona</Button>
-                                        <Button onClick={() => handlePredefinedFile('Naucz sieć dla Ethernum')}>Naucz sieć dla Ethernum</Button>
-                                        <Button onClick={() => handlePredefinedFile("http://localhost:8000/predict/airline-passengers.csv")}>Naucz sieć dla Krypto 3</Button>
-                                        <Button onClick={() => handlePredefinedFile("http://localhost:8000/predict/zbior-drugi.csv")}>Naucz sieć dla Krypto 4</Button>
+                                        <Button onClick={() => handlePredefinedFile('Naucz sieć dla Bitcona')}>Naucz sieć
+                                            dla Bitcona</Button>
+                                        <Button onClick={() => handlePredefinedFile('Naucz sieć dla Ethernum')}>Naucz sieć
+                                            dla Ethernum</Button>
+                                        <Button
+                                            onClick={() => handlePredefinedFile("http://localhost:8000/predict/airline-passengers.csv")}>Naucz
+                                            sieć dla Krypto 3</Button>
+                                        <Button
+                                            onClick={() => handlePredefinedFile("http://localhost:8000/predict/zbior-drugi.csv")}>Naucz
+                                            sieć dla Krypto 4</Button>
                                     </ButtonGroup>
                                 </Box>
                             </Card>
@@ -221,7 +152,7 @@ const FrameWithButtons = () => {
                             <Card>
                                 <Box p={2}>
                                     <Typography variant="h5" gutterBottom>
-                                        {"Aktualny wybór: " + url + (selectedFile ? "/" + selectedFile.name : "")}
+                                        {"Aktualny wybór: " + url}
                                     </Typography>
                                 </Box>
                             </Card>
