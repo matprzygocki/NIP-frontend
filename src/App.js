@@ -134,16 +134,16 @@ const FrameWithButtons = () => {
                                         Predefiniowane pliki CSV
                                     </Typography>
                                     <ButtonGroup variant="contained" aria-label="outlined primary button group">
-                                        <Button onClick={() => handlePredefinedFile('Naucz sieć dla Bitcona')}>Naucz sieć
-                                            dla Bitcona</Button>
-                                        <Button onClick={() => handlePredefinedFile('Naucz sieć dla Ethernum')}>Naucz sieć
-                                            dla Ethernum</Button>
+                                        <Button onClick={() => handlePredefinedFile("http://localhost:8000/predict/BitcoinUSD.csv")}>Naucz sieć
+                                            dla Bitcoin</Button>
+                                        <Button onClick={() => handlePredefinedFile("http://localhost:8000/predict/EtherUSD.csv")}>Naucz sieć
+                                            dla Etherneum</Button>
                                         <Button
-                                            onClick={() => handlePredefinedFile("http://localhost:8000/predict/airline-passengers.csv")}>Naucz
-                                            sieć dla Krypto 3</Button>
+                                            onClick={() => handlePredefinedFile("http://localhost:8000/predict/AcalaUSD.csv")}>Naucz sieć
+                                            dla Acala Coin</Button>
                                         <Button
-                                            onClick={() => handlePredefinedFile("http://localhost:8000/predict/zbior-drugi.csv")}>Naucz
-                                            sieć dla Krypto 4</Button>
+                                            onClick={() => handlePredefinedFile("http://localhost:8000/predict/HarvestUSD.csv")}>Naucz
+                                            sieć dla Harvest Coin</Button>
                                     </ButtonGroup>
                                 </Box>
                             </Card>
