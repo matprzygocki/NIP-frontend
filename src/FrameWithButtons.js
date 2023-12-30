@@ -6,7 +6,6 @@ import ButtonGroup from "@mui/material/ButtonGroup";
 import {LineChart} from "@mui/x-charts";
 import keycloak from "./keycloak";
 
-
 const FrameWithButtons = () => {
         const [selectedFile, setSelectedFile] = useState(null);
         const [chartConfig, setChartConfig] = useState(null);
@@ -229,6 +228,17 @@ const FrameWithButtons = () => {
                                 </Box>
                             </Card>
                         </Grid>
+
+                        <Grid item xs={12}>
+                            <Card>
+                                <Box p={2}>
+                                    <Typography variant="h5" gutterBottom>
+                                        Ewaluacja modelu
+                                    </Typography>
+                                </Box>
+                            </Card>
+                        </Grid>
+
                     </Grid>
                 </Box>
             </Container>

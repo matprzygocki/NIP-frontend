@@ -5,6 +5,7 @@ import keycloak from './keycloak';
 import FrameWithButtons from './FrameWithButtons';
 import './styles.css';
 
+
 const App = () => {
     const [authenticated, setAuthenticated] = useState(false);
 
