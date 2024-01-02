@@ -10,9 +10,9 @@ const FrameWithButtons = () => {
         const [selectedFile, setSelectedFile] = useState(null);
         const [chartConfig, setChartConfig] = useState(null);
         const [loading, setLoading] = useState(false);
-        const [url, setUrl] = useState("http://localhost:8000/predict");
-        const apiKey = '4e9d8822-2eaf-46c4-b48c-4e9bdb3317c4';
+        const [url, setUrl] = useState("http://localhost:8081/spring-microservice-proxy/predict-ai");
         const [splitPercentage, setSplitPercentage] = useState(0.67);
+        const [predictionsData, setPredictionsData] = useState(null)
 
         const getPredictions = () => {
             setLoading(true);
@@ -24,12 +24,12 @@ const FrameWithButtons = () => {
             }
 
             fetch(
-                `${url}/${splitPercentage}`,
+                `${url}?splitPercentage=${splitPercentage}`,
                 {
                     method: 'POST',
                     body: formData,
                     headers: {
-                        'X-API-Key': apiKey,
+                        'Authorization': 'Bearer ' + keycloak.token
                     },
                 }
             )
@@ -37,6 +37,7 @@ const FrameWithButtons = () => {
                     return response.json();
                 })
                 .then(data => {
+                        setPredictionsData(data)
                         const config = {};
                         const chartData = new Map();
                         for (let i = 0; i < data.train.x.length; i++) {
@@ -91,7 +92,7 @@ const FrameWithButtons = () => {
             const file = event.target.files[0];
             setSelectedFile(file);
             if (file !== undefined && file !== null) {
-                setUrl("http://localhost:8000/predict")
+                setUrl("http://localhost:8081/spring-microservice-proxy/predict-ai")
             }
         };
 
@@ -132,7 +133,7 @@ const FrameWithButtons = () => {
 
                         <Grid item xs={12}>
                             <Card>
-                                {keycloak.hasRealmRole('admin') && ( //UKRYWAM KAWAŁEK JEŻELI ROLA JEST INNA OD ADMIN
+                                {keycloak.hasRealmRole('technician') && ( //UKRYWAM KAWAŁEK JEŻELI ROLA JEST INNA OD ADMIN
                                     <Box p={2}>
                                         <Typography variant="h5" gutterBottom>
                                             Indywidualny plik CSV (admin)
@@ -156,15 +157,15 @@ const FrameWithButtons = () => {
                                         Predefiniowane pliki CSV
                                     </Typography>
                                     <ButtonGroup variant="contained" aria-label="outlined primary button group">
-                                        <Button onClick={() => handlePredefinedFile("http://localhost:8000/predict/BitcoinUSD.csv")}>Naucz sieć
+                                        <Button onClick={() => handlePredefinedFile("http://localhost:8081/spring-microservice-proxy/predict-ai/BitcoinUSD.csv")}>Naucz sieć
                                             dla Bitcoin</Button>
-                                        <Button onClick={() => handlePredefinedFile("http://localhost:8000/predict/EtherUSD.csv")}>Naucz sieć
+                                        <Button onClick={() => handlePredefinedFile("http://localhost:8081/spring-microservice-proxy/predict-ai/EtherUSD.csv")}>Naucz sieć
                                             dla Etherneum</Button>
                                         <Button
-                                            onClick={() => handlePredefinedFile("http://localhost:8000/predict/AcalaUSD.csv")}>Naucz sieć
+                                            onClick={() => handlePredefinedFile("http://localhost:8081/spring-microservice-proxy/predict-ai/AcalaUSD.csv")}>Naucz sieć
                                             dla Acala Coin</Button>
                                         <Button
-                                            onClick={() => handlePredefinedFile("http://localhost:8000/predict/HarvestUSD.csv")}>Naucz
+                                            onClick={() => handlePredefinedFile("http://localhost:8081/spring-microservice-proxy/predict-ai/HarvestUSD.csv")}>Naucz
                                             sieć dla Harvest Coin</Button>
                                     </ButtonGroup>
                                 </Box>
@@ -229,15 +230,29 @@ const FrameWithButtons = () => {
                             </Card>
                         </Grid>
 
-                        <Grid item xs={12}>
+                        {predictionsData && <Grid item xs={12}>
                             <Card>
                                 <Box p={2}>
                                     <Typography variant="h5" gutterBottom>
                                         Ewaluacja modelu
                                     </Typography>
+                                    <Typography variant="h6" gutterBottom>
+                                        RMSE
+                                    </Typography>
+                                    <Typography variant="body1" gutterBottom ml={4}>
+                                        {'Trening: ' + predictionsData.meanSquaredError.train} <br/>
+                                        {'Test: ' + predictionsData.meanSquaredError.test} <br/>
+                                    </Typography>
+                                    <Typography variant="h6">
+                                        R2
+                                    </Typography>
+                                    <Typography variant="body1" gutterBottom ml={4}>
+                                        {'Trening: ' + predictionsData.r2.train} <br/>
+                                        {'Test: ' + predictionsData.r2.test} <br/>
+                                    </Typography>
                                 </Box>
                             </Card>
-                        </Grid>
+                        </Grid>}
 
                     </Grid>
                 </Box>

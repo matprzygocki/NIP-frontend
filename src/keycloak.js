@@ -1,9 +1,9 @@
 import Keycloak from 'keycloak-js';
 
 const keycloak = new Keycloak({
-    realm: 'frontend',
+    realm: 'nip',
     url: 'http://localhost:8079/auth',
-    clientId: 'frontend_client',
+    clientId: 'microservice-proxy',
 });
 
 export default keycloak;
