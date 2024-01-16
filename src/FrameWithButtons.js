@@ -10,7 +10,7 @@ const FrameWithButtons = () => {
         const [selectedFile, setSelectedFile] = useState(null);
         const [chartConfig, setChartConfig] = useState(null);
         const [loading, setLoading] = useState(false);
-        const [url, setUrl] = useState("http://localhost:8081/spring-microservice-proxy/predict-ai");
+        const [url, setUrl] = useState("http://localhost:8080/proxy/predict-ai");
         const [splitPercentage, setSplitPercentage] = useState(0.67);
         const [predictionsData, setPredictionsData] = useState(null)
 
@@ -92,7 +92,7 @@ const FrameWithButtons = () => {
             const file = event.target.files[0];
             setSelectedFile(file);
             if (file !== undefined && file !== null) {
-                setUrl("http://localhost:8081/spring-microservice-proxy/predict-ai")
+                setUrl("http://localhost:8080/proxy/predict-ai")
             }
         };
 
@@ -157,15 +157,15 @@ const FrameWithButtons = () => {
                                         Predefiniowane pliki CSV
                                     </Typography>
                                     <ButtonGroup variant="contained" aria-label="outlined primary button group">
-                                        <Button onClick={() => handlePredefinedFile("http://localhost:8081/spring-microservice-proxy/predict-ai/BitcoinUSD.csv")}>Naucz sieć
+                                        <Button onClick={() => handlePredefinedFile("http://localhost:8080/proxy/predict-ai/BitcoinUSD.csv")}>Naucz sieć
                                             dla Bitcoin</Button>
-                                        <Button onClick={() => handlePredefinedFile("http://localhost:8081/spring-microservice-proxy/predict-ai/EtherUSD.csv")}>Naucz sieć
+                                        <Button onClick={() => handlePredefinedFile("http://localhost:8080/proxy/predict-ai/EtherUSD.csv")}>Naucz sieć
                                             dla Etherneum</Button>
                                         <Button
-                                            onClick={() => handlePredefinedFile("http://localhost:8081/spring-microservice-proxy/predict-ai/AcalaUSD.csv")}>Naucz sieć
+                                            onClick={() => handlePredefinedFile("http://localhost:8080/proxy/predict-ai/AcalaUSD.csv")}>Naucz sieć
                                             dla Acala Coin</Button>
                                         <Button
-                                            onClick={() => handlePredefinedFile("http://localhost:8081/spring-microservice-proxy/predict-ai/HarvestUSD.csv")}>Naucz
+                                            onClick={() => handlePredefinedFile("http://localhost:8080/proxy/predict-ai/HarvestUSD.csv")}>Naucz
                                             sieć dla Harvest Coin</Button>
                                     </ButtonGroup>
                                 </Box>

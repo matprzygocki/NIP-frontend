@@ -2,7 +2,7 @@ import Keycloak from 'keycloak-js';
 
 const keycloak = new Keycloak({
     realm: 'nip',
-    url: 'http://localhost:8079/auth',
+    url: 'http://localhost:8078/auth',
     clientId: 'microservice-proxy',
 });
 
