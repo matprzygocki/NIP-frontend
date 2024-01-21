@@ -7,149 +7,150 @@ import {LineChart} from "@mui/x-charts";
 import keycloak from "./keycloak";
 
 const FrameWithButtons = () => {
-        const [selectedFile, setSelectedFile] = useState(null);
-        const [chartConfig, setChartConfig] = useState(null);
-        const [loading, setLoading] = useState(false);
-        const [url, setUrl] = useState("http://localhost:8080/proxy/predict-ai");
-        const [splitPercentage, setSplitPercentage] = useState(0.67);
-        const [predictionsData, setPredictionsData] = useState(null)
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [chartConfig, setChartConfig] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [url, setUrl] = useState("http://localhost:8080/proxy/predict-ai");
+    const [splitPercentage, setSplitPercentage] = useState(0.67);
+    const [predictionsData, setPredictionsData] = useState(null)
 
-        const getPredictions = () => {
-            setLoading(true);
-            let formData = null;
+    const getPredictions = () => {
+        setLoading(true);
+        let formData = null;
 
-            if (selectedFile !== undefined && selectedFile !== null) {
-                formData = new FormData();
-                formData.append('file', selectedFile);
+        if (selectedFile !== undefined && selectedFile !== null) {
+            formData = new FormData();
+            formData.append('file', selectedFile);
+        }
+
+        fetch(
+            `${url}?splitPercentage=${splitPercentage}`,
+            {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Authorization': 'Bearer ' + keycloak.token
+                },
             }
-
-            fetch(
-                `${url}?splitPercentage=${splitPercentage}`,
-                {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'Authorization': 'Bearer ' + keycloak.token
-                    },
-                }
-            )
-                .then(response => {
-                    return response.json();
-                })
-                .then(data => {
-                        setPredictionsData(data)
-                        const config = {};
-                        const chartData = new Map();
-                        for (let i = 0; i < data.train.x.length; i++) {
-                            const num = data.train.x[i];
+        )
+            .then(response => {
+                return response.json();
+            })
+            .then(data => {
+                    setPredictionsData(data)
+                    const config = {};
+                    const chartData = new Map();
+                    for (let i = 0; i < data.train.x.length; i++) {
+                        const num = data.train.x[i];
+                        chartData.set(num, {
+                            x: num,
+                            train: data.train.y[i],
+                            test: null
+                        });
+                    }
+                    for (let i = 0; i < data.test.x.length; i++) {
+                        const num = data.test.x[i];
+                        if (chartData.has(num)) {
+                            const existingData = chartData.get(num);
+                            existingData.test = data.test.y[i];
+                            chartData.set(num, existingData);
+                        } else {
                             chartData.set(num, {
                                 x: num,
-                                train: data.train.y[i],
-                                test: null
+                                train: null,
+                                test: data.test.y[i]
                             });
                         }
-                        for (let i = 0; i < data.test.x.length; i++) {
-                            const num = data.test.x[i];
-                            if (chartData.has(num)) {
-                                const existingData = chartData.get(num);
-                                existingData.test = data.test.y[i];
-                                chartData.set(num, existingData);
-                            } else {
-                                chartData.set(num, {
-                                    x: num,
-                                    train: null,
-                                    test: data.test.y[i]
-                                });
-                            }
-                        }
-                        config.data = Array.from(chartData, ([key, value]) => value);
-                        config.series = ["train", "test"].map(key => {
-                            return {
-                                type: "line",
-                                dataKey: key,
-                                label: key,
-                                color: colorByKey[key],
-                                showMark: false
-                            }
-                        });
-                        config.xAxis = [{
-                            scaleType: "point",
-                            dataKey: 'x',
-                            min: 0,
-                            max: 1,
-                        }];
-                        setChartConfig(config);
-                        setLoading(false);
                     }
-                )
-                .catch((error) => {
-                    console.log(error);
+                    config.data = Array.from(chartData, ([key, value]) => value);
+                    config.series = ["train", "test"].map(key => {
+                        return {
+                            type: "line",
+                            dataKey: key,
+                            label: key,
+                            color: colorByKey[key],
+                            showMark: false
+                        }
+                    });
+                    config.xAxis = [{
+                        scaleType: "point",
+                        dataKey: 'x',
+                        min: 0,
+                        max: 1,
+                    }];
+                    setChartConfig(config);
                     setLoading(false);
-                });
+                }
+            )
+            .catch((error) => {
+                console.log(error);
+                setLoading(false);
+            });
+    }
+
+    const handleFileChange = (event) => {
+        const file = event.target.files[0];
+        setSelectedFile(file);
+        if (file !== undefined && file !== null) {
+            setUrl("http://localhost:8080/proxy/predict-ai")
         }
+    };
 
-        const handleFileChange = (event) => {
-            const file = event.target.files[0];
-            setSelectedFile(file);
-            if (file !== undefined && file !== null) {
-                setUrl("http://localhost:8080/proxy/predict-ai")
-            }
-        };
+    const handlePredefinedFile = urlWithPredefinedFile => {
+        setUrl(urlWithPredefinedFile);
+        setSelectedFile(null);
+    };
 
-        const handlePredefinedFile = urlWithPredefinedFile => {
-            setUrl(urlWithPredefinedFile);
-            setSelectedFile(null);
-        };
+    const handleSliderChange = (event, newValue) => {
+        setSplitPercentage(newValue);
+    };
 
-        const handleSliderChange = (event, newValue) => {
-            setSplitPercentage(newValue);
-        };
+    const customize = {
+        height: 300,
+        legend: {hidden: false},
+        margin: {top: 5},
+        stackingOrder: 'ascending',
+    };
 
-        const customize = {
-            height: 300,
-            legend: {hidden: false},
-            margin: {top: 5},
-            stackingOrder: 'ascending',
-        };
+    const colorByKey = {
+        train: "blue",
+        test: "green"
+    }
 
-        const colorByKey = {
-            train: "blue",
-            test: "green"
-        }
+    return (
+        <Container>
+            <Box p={2}>
+                <Grid container spacing={2}>
+                    <Grid item xs={12}>
+                        <Card>
+                            <Box p={2} sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                                <Button variant="contained" onClick={() => keycloak.logout()}>
+                                    Wyloguj
+                                </Button>
+                            </Box>
+                        </Card>
+                    </Grid>
 
-        return (
-            <Container>
-                <Box p={2}>
-                    <Grid container spacing={2}>
+                    {keycloak.hasRealmRole('technician') &&  //UKRYWAM KAWAŁEK JEŻELI ROLA JEST INNA OD ADMIN
                         <Grid item xs={12}>
                             <Card>
-                                <Box p={2} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <Button variant="contained" onClick={() => keycloak.logout()}>
-                                        Wyloguj
-                                    </Button>
+                                <Box p={2}>
+                                    <Typography variant="h5" gutterBottom>
+                                        Indywidualny plik CSV (admin)
+                                    </Typography>
+                                    <Box sx={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
+                                        <Button variant="contained" component="label">
+                                            Wczytaj CSV
+                                            <input type="file" hidden onChange={handleFileChange}/>
+                                        </Button>
+                                        {selectedFile &&
+                                            <Typography ml={2}>Nazwa wybranego pliku: {selectedFile.name}</Typography>}
+                                    </Box>
                                 </Box>
                             </Card>
-                        </Grid>
+                        </Grid>}
 
-                        <Grid item xs={12}>
-                            <Card>
-                                {keycloak.hasRealmRole('technician') && ( //UKRYWAM KAWAŁEK JEŻELI ROLA JEST INNA OD ADMIN
-                                    <Box p={2}>
-                                        <Typography variant="h5" gutterBottom>
-                                            Indywidualny plik CSV (admin)
-                                        </Typography>
-                                        <Box sx={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
-                                            <Button variant="contained" component="label">
-                                                Wczytaj CSV
-                                                <input type="file" hidden onChange={handleFileChange}/>
-                                            </Button>
-                                            {selectedFile &&
-                                                <Typography ml={2}>Nazwa wybranego pliku: {selectedFile.name}</Typography>}
-                                        </Box>
-                                    </Box>)}
-                            </Card>
-                        </Grid>
-
+                    {(keycloak.hasRealmRole('user') || keycloak.hasRealmRole('technician')) && ( //UKRYWAM KAWAŁEK JEŻELI ROLA JEST INNA OD ADMIN
                         <Grid item xs={12}>
                             <Card>
                                 <Box p={2}>
@@ -157,12 +158,17 @@ const FrameWithButtons = () => {
                                         Predefiniowane pliki CSV
                                     </Typography>
                                     <ButtonGroup variant="contained" aria-label="outlined primary button group">
-                                        <Button onClick={() => handlePredefinedFile("http://localhost:8080/proxy/predict-ai/BitcoinUSD.csv")}>Naucz sieć
+                                        <Button
+                                            onClick={() => handlePredefinedFile("http://localhost:8080/proxy/predict-ai/BitcoinUSD.csv")}>Naucz
+                                            sieć
                                             dla Bitcoin</Button>
-                                        <Button onClick={() => handlePredefinedFile("http://localhost:8080/proxy/predict-ai/EtherUSD.csv")}>Naucz sieć
+                                        <Button
+                                            onClick={() => handlePredefinedFile("http://localhost:8080/proxy/predict-ai/EtherUSD.csv")}>Naucz
+                                            sieć
                                             dla Etherneum</Button>
                                         <Button
-                                            onClick={() => handlePredefinedFile("http://localhost:8080/proxy/predict-ai/AcalaUSD.csv")}>Naucz sieć
+                                            onClick={() => handlePredefinedFile("http://localhost:8080/proxy/predict-ai/AcalaUSD.csv")}>Naucz
+                                            sieć
                                             dla Acala Coin</Button>
                                         <Button
                                             onClick={() => handlePredefinedFile("http://localhost:8080/proxy/predict-ai/HarvestUSD.csv")}>Naucz
@@ -171,6 +177,9 @@ const FrameWithButtons = () => {
                                 </Box>
                             </Card>
                         </Grid>
+                    )}
+
+                    {(keycloak.hasRealmRole('user') || keycloak.hasRealmRole('technician')) && ( //UKRYWAM KAWAŁEK JEŻELI ROLA JEST INNA OD ADMIN
                         <Grid item xs={12}>
                             <Card>
                                 <Box p={2}>
@@ -180,7 +189,9 @@ const FrameWithButtons = () => {
                                 </Box>
                             </Card>
                         </Grid>
+                    )}
 
+                    {(keycloak.hasRealmRole('user') || keycloak.hasRealmRole('technician')) && ( //UKRYWAM KAWAŁEK JEŻELI ROLA JEST INNA OD ADMIN
                         <Grid item xs={12}>
                             <Card>
                                 <Box p={2}>
@@ -192,10 +203,10 @@ const FrameWithButtons = () => {
                                             <Slider
                                                 value={splitPercentage}
                                                 onChange={handleSliderChange}
-                                                step={0.05}
+                                                step={0.01}
                                                 marks
-                                                min={0.05}
-                                                max={0.95}
+                                                min={0.1}
+                                                max={0.9}
                                                 valueLabelDisplay="auto"
                                             />
                                         </Grid>
@@ -208,7 +219,9 @@ const FrameWithButtons = () => {
                                 </Box>
                             </Card>
                         </Grid>
+                    )}
 
+                    {(keycloak.hasRealmRole('user') || keycloak.hasRealmRole('technician')) && ( //UKRYWAM KAWAŁEK JEŻELI ROLA JEST INNA OD ADMIN
                         <Grid item xs={12}>
                             <Card>
                                 <Box p={2}>
@@ -229,8 +242,10 @@ const FrameWithButtons = () => {
                                 </Box>
                             </Card>
                         </Grid>
+                    )}
 
-                        {predictionsData && <Grid item xs={12}>
+                    {((keycloak.hasRealmRole('user') || keycloak.hasRealmRole('technician')) && predictionsData) && (
+                        <Grid item xs={12}>
                             <Card>
                                 <Box p={2}>
                                     <Typography variant="h5" gutterBottom>
@@ -252,12 +267,10 @@ const FrameWithButtons = () => {
                                     </Typography>
                                 </Box>
                             </Card>
-                        </Grid>}
-
-                    </Grid>
-                </Box>
-            </Container>
-        );
-    }
-;
+                        </Grid>)}
+                </Grid>
+            </Box>
+        </Container>
+    );
+};
 export default FrameWithButtons;
